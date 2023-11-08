@@ -1,4 +1,4 @@
-# 
+#
 # Makefile for Peter Dannegger's bootloader, to be used with the GNU
 # toolchest (as opposed to Atmel's Assembler).
 #
@@ -37,12 +37,12 @@
 # MCU = attiny85
 # MCU = atmega2560
 # MCU = atmega1281
-MCU = atmega8
+MCU = atmega32u4
 
 # Name of the Atmel defs file for the actual MCU.
 #
 # They are part of AVR Studio (located in Windows at
-# \Programs\Atmel\AVR Tools\AvrAssembler2\Appnotes\*.inc).  
+# \Programs\Atmel\AVR Tools\AvrAssembler2\Appnotes\*.inc).
 #
 # You may choose to download AVR000.zip at
 # http://attiny.com/definitions.htm instead.  If you do so, just click
@@ -55,11 +55,11 @@ MCU = atmega8
 # ATMEL_INC=tn85def.inc
 # ATMEL_INC = m2560def.inc
 # ATMEL_INC = m1281def.inc
-ATMEL_INC = m8def.inc
+ATMEL_INC = m32U4def.inc
 
 # Processor frequency.  The value is not critical:
 #F_CPU = 14745600
-F_CPU = 8000000
+F_CPU = 16000000
 
 #     AVR Studio 4.10 requires dwarf-2.
 #     gdb runs better with stabs
@@ -69,17 +69,17 @@ DEBUG = stabs+
 # Define the Tx and Rx lines here.  Set both groups to the same for
 # one wire mode:
 STX_PORT = PORTD
-STX = PD1
+STX = PD3
 
 SRX_PORT = PORTD
-SRX = PD0
+SRX = PD2
 
 ####### End user presets ######################
 
 SHELL=/bin/bash
 
-CFLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU) 
-CFLAGS += -I . -I ./added -I ./converted -I/usr/local/avr/include 
+CFLAGS = -mmcu=$(MCU) -DF_CPU=$(F_CPU)
+CFLAGS += -I . -I ./added -I ./converted -I/usr/local/avr/include
 CFLAGS += -ffreestanding
 CFLAGS += -g$(DEBUG)
 CFLAGS += -L,-g$(DEBUG)
@@ -120,7 +120,7 @@ ASMSRC = $(AUTO_CONVERTED_FILES) $(MANUALLY_ADDED_FILES)
 include atmel_def.mak
 
 ifdef BOOTRST
-STUB_OFFSET = 510 
+STUB_OFFSET = 510
 LOADER_START = ( $(FLASHEND) * 2 ) - 510
 endif
 
@@ -146,7 +146,7 @@ ifndef BOOTRST
 else
 	vars="$$(./get_bootsection_addrs.sh $(FLASHEND) $(FIRSTBOOTSTART) \
                 $(SECONDBOOTSTART) $(THIRDBOOTSTART) $(FORTHBOOTSTART))"; \
-	arch="$$(./get_avr_arch.sh -mmcu=$(MCU) bootload.o)"; \
+	arch=avr5;\
 	echo "arch=$$arch";\
 	echo "$$vars"; \
 	eval "$$vars"; \
@@ -180,7 +180,7 @@ stub.o: added/stub.S
 
 .PHONY: clean dbg
 
-clean: 
+clean:
 	rm -f atmel_def.h bootload.x *.defs *.o *.gas *.mak *.lst *.02x *.map
 
 ###
@@ -234,7 +234,7 @@ cmp:  BOOTLOAD.02x bootload.02x
 	hexdump -e '1/2 "%04x" "\n"' $< > $@
 
 
-### 
+###
 # Create distribution .tar.gz
 #
 DISTFILES = $(AUTO_CONVERTED_FILES) $(MANUALLY_ADDED_FILES)
@@ -252,14 +252,14 @@ dist:
 	echo "build$$(< build_no) - $$(date -Isec) ($${USER:-unknown})" >> build_no-timestamps
 
 ### Debug
-bincmp: 
+bincmp:
 	objcopy -I ihex -O binary bootload.hex bootload.bin
 	cmp BOOTLOAD.bin bootload.bin
 
 checkdist:
 	rm -rf fastboot.test
 	set -- fastboot_build*.tar.gz; \
-	tar xvzf $$_ 
+	tar xvzf $$_
 	mv fastboot fastboot.test
 	cd fastboot.test; \
 	cp ../m168def.inc .; \
